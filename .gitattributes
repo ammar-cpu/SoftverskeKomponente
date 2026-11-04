@@ -1,0 +1,7 @@
+* text=auto
+
+# gradlew mora imati Unix kraj reda, inače ne radi na Mac-u i Linux-u
+gradlew text eol=lf
+*.bat text eol=crlf
+
+*.jar binary

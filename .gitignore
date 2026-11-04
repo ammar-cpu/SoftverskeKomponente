@@ -1,0 +1,16 @@
+.gradle/
+build/
+out/
+bin/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Google Drive kredencijali, nikad na GitHub
+credentials.json
+tokens/
+
+# repozitorijumi i preuzimanja napravljeni pri testiranju
+moj-repo/
+preuzeto/

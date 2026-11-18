@@ -18,7 +18,7 @@ internal class LocalResolverStorage(private val root: Path) : ResolverStorage {
         try {
             return Files.readAllBytes(root.resolve(path))
         } catch (e: IOException) {
-            throw RepositoryException("Cannot read file: $path").apply { initCause(e) }
+            throw RepositoryException("Cannot read file: $path", e)
         }
     }
 
@@ -33,7 +33,7 @@ internal class LocalResolverStorage(private val root: Path) : ResolverStorage {
                 return stream.map { it.fileName.toString() }.toList().sorted()
             }
         } catch (e: IOException) {
-            throw RepositoryException("Cannot list folder: $path").apply { initCause(e) }
+            throw RepositoryException("Cannot list folder: $path", e)
         }
     }
 }

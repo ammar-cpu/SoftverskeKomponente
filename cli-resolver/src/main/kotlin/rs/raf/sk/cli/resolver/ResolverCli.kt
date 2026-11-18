@@ -34,6 +34,17 @@ private fun run(args: Array<String>) {
         for (id in DependencyResolver.readDependencyFile(File(args[3]))) {
             println(id)
         }
+    } else if (args.size == 4 && args[2] == "tree") {
+        val resolver = DependencyResolver.load(args[0])
+        resolver.connect(args[1])
+        val roots = DependencyResolver.readDependencyFile(File(args[3]))
+
+        for ((key, candidates) in resolver.collectCandidates(roots)) {
+            println(key)
+            for (candidate in candidates) {
+                println("  ${candidate.id.version}  depth=${candidate.depth}  order=${candidate.order}")
+            }
+        }
     } else {
         printUsage()
     }
@@ -44,4 +55,5 @@ private fun printUsage() {
     println("  cli-resolver types                       list available repository types")
     println("  cli-resolver <type> <location> config    print the repository config")
     println("  cli-resolver <type> <location> list <file>   print the components from a dependency file")
+    println("  cli-resolver <type> <location> tree <file>   print all found versions with depth (temporary)")
 }

@@ -1,11 +1,14 @@
 package rs.raf.sk.resolver
 
 import rs.raf.sk.model.ComponentId
+import rs.raf.sk.model.ComponentNotFoundException
+import rs.raf.sk.model.Metadata
 import rs.raf.sk.model.RepoConfig
 import rs.raf.sk.model.RepoPaths
 import rs.raf.sk.model.RepositoryException
 import rs.raf.sk.model.ValidationException
 import rs.raf.sk.model.parseConfig
+import rs.raf.sk.model.parseMetadata
 import java.io.File
 import java.io.IOException
 import java.util.ServiceLoader
@@ -57,6 +60,56 @@ abstract class DependencyResolver {
      */
     fun readConfig(): RepoConfig =
         parseConfig(storage.read(RepoPaths.CONFIG).decodeToString())
+
+    /**
+     * Obilazi stablo zavisnosti po širini (BFS) i vraća sve pronađene verzije, bez rešavanja konflikata.
+     * Prati samo zavisnosti koje nisu optional i čiji je scope tranzitivan po config.json.
+     * Svaka konkretna verzija se obilazi samo jednom, pa ciklus ne pravi beskonačnu petlju.
+     *
+     * @param roots komponente sa spiska za preuzimanje; imaju dubinu 1
+     * @return pronađene verzije grupisane po ključu "organizacija:projekat", redom nailaska
+     * @throws rs.raf.sk.model.ComponentNotFoundException ako za neku komponentu ne postoji metadata.json
+     * @throws ValidationException ako config.json ili neki metadata.json nije ispravan
+     * @throws RepositoryException ako repozitorijum ne može da se pročita
+     */
+    fun collectCandidates(roots: List<ComponentId>): Map<String, List<Candidate>> {
+        val config = readConfig()
+        val result = mutableMapOf<String, MutableList<Candidate>>()
+        val visited = mutableSetOf<ComponentId>()
+        val queue = ArrayDeque<Candidate>()
+        var order = 0
+
+        for (id in roots) {
+            if (visited.add(id)) {
+                queue.addLast(Candidate(id, 1, order++))
+            }
+        }
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            result.getOrPut(projectKey(current.id)) { mutableListOf() }.add(current)
+
+            for (dependency in readMetadata(current.id).dependencies) {
+                if (dependency.optional || !config.isTransitive(dependency.scope)) {
+                    continue
+                }
+                if (visited.add(dependency.id)) {
+                    queue.addLast(Candidate(dependency.id, current.depth + 1, order++))
+                }
+            }
+        }
+        return result
+    }
+
+    private fun readMetadata(id: ComponentId): Metadata {
+        val path = RepoPaths.metadataPath(id)
+        if (!storage.exists(path)) {
+            throw ComponentNotFoundException("Component not found: $id")
+        }
+        return parseMetadata(storage.read(path).decodeToString())
+    }
+
+    private fun projectKey(id: ComponentId): String = "${id.organization}:${id.project}"
 
     /**
      * Pronalazi sve komponente koje treba preuzeti: zadate komponente i njihove tranzitivne zavisnosti.

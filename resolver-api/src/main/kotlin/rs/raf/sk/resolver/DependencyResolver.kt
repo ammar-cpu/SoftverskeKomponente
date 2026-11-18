@@ -11,6 +11,7 @@ import rs.raf.sk.model.parseConfig
 import rs.raf.sk.model.parseMetadata
 import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 import java.util.ServiceLoader
 
 /**
@@ -158,13 +159,50 @@ abstract class DependencyResolver {
 
     /**
      * Preuzima fajlove zadatih komponenti i njihovih zavisnosti u odredišni folder.
+     * Spisak komponenti određuje [resolve]. Fajlovi se čitaju iz repozitorijuma, a upisuju na lokalni disk;
+     * ako odredišni folder ne postoji, pravi se.
+     *
+     * Fajlovi koji su već u odredišnom folderu se ne brišu, a fajlovi istog imena se prepisuju.
+     * Ako se dva puta preuzima u isti folder sa različitim rezultatom, u folderu mogu ostati
+     * dve verzije iste komponente (npr. utils-1.0.0.jar i utils-2.0.0.jar). Za čist rezultat
+     * koristiti prazan ili nov folder.
      *
      * @param roots komponente sa spiska za preuzimanje
-     * @param targetDir folder u koji se fajlovi upisuju
+     * @param targetDir lokalni folder u koji se fajlovi upisuju
+     * @return preuzeti fajlovi, redom kojim ih je vratio [resolve]
      * @throws rs.raf.sk.model.ComponentNotFoundException ako neka komponenta ne postoji u repozitorijumu
-     * @throws RepositoryException ako fajl ne može da se pročita iz repozitorijuma
+     * @throws ValidationException ako ime fajla u metadata.json sadrži "/", "\" ili "..", ili ako metadata.json nije ispravan
+     * @throws RepositoryException ako fajl ne može da se pročita iz repozitorijuma ili upiše u odredišni folder
+     * @throws UninitializedPropertyAccessException ako [strategy] nije postavljena
      */
-    fun download(roots: List<ComponentId>, targetDir: File): Unit = TODO()
+    fun download(roots: List<ComponentId>, targetDir: File): List<File> {
+        val ids = resolve(roots)
+        val dir = targetDir.toPath()
+
+        try {
+            Files.createDirectories(dir)
+        } catch (e: IOException) {
+            throw RepositoryException("Cannot create folder: $targetDir", e)
+        }
+
+        val downloaded = mutableListOf<File>()
+        for (id in ids) {
+            val fileName = readMetadata(id).file
+            if (fileName.contains("/") || fileName.contains("\\") || fileName.contains("..")) {
+                throw ValidationException("Invalid file name in ${RepoPaths.METADATA} of $id: '$fileName'")
+            }
+
+            val content = storage.read("${RepoPaths.versionDir(id)}/$fileName")
+            val target = dir.resolve(fileName)
+            try {
+                Files.write(target, content)
+            } catch (e: IOException) {
+                throw RepositoryException("Cannot write file: $target", e)
+            }
+            downloaded.add(target.toFile())
+        }
+        return downloaded
+    }
 
     companion object {
         /**

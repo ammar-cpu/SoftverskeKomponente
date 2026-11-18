@@ -1,11 +1,10 @@
 package rs.raf.sk.resolver
 
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import rs.raf.sk.model.ComponentId
 import rs.raf.sk.model.RepoConfig
 import rs.raf.sk.model.RepoPaths
 import rs.raf.sk.model.RepositoryException
+import rs.raf.sk.model.parseConfig
 import java.io.File
 import java.util.ServiceLoader
 
@@ -54,15 +53,8 @@ abstract class DependencyResolver {
      * @return pravila repozitorijuma
      * @throws RepositoryException ako config.json ne postoji, ne može da se pročita ili nije ispravan
      */
-    fun readConfig(): RepoConfig {
-        val text = storage.read(RepoPaths.CONFIG).decodeToString()
-
-        try {
-            return Json.decodeFromString(RepoConfig.serializer(), text)
-        } catch (e: SerializationException) {
-            throw RepositoryException("Invalid ${RepoPaths.CONFIG}: ${e.message}").apply { initCause(e) }
-        }
-    }
+    fun readConfig(): RepoConfig =
+        parseConfig(storage.read(RepoPaths.CONFIG).decodeToString())
 
     /**
      * Pronalazi sve komponente koje treba preuzeti: zadate komponente i njihove tranzitivne zavisnosti.

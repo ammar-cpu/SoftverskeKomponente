@@ -26,7 +26,7 @@ fun compareVersions(version1: String, version2: String): Int {
         val y = p2.getOrElse(i) { 0 }
 
         if (x != y) {
-            return x - y
+            return x.compareTo(y)
         }
     }
 
@@ -45,5 +45,7 @@ private fun toNumbers(version: String): List<Int> {
         throw ValidationException("Invalid version: $version")
     }
 
-    return version.split(".").map{ it.toInt() }
+    return version.split(".").map {
+        it.toIntOrNull() ?: throw ValidationException("Version number too large: $version")
+    }
 }

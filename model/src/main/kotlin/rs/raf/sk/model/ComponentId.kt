@@ -3,7 +3,8 @@ package rs.raf.sk.model
 /**
  * Jedinstvena oznaka komponente: organizacija, projekat i verzija.
  * Tekstualni oblik je "organizacija:projekat:verzija", npr. "rs.raf:utils:2.1.0".
- * Nijedan deo ne sme biti prazan niti sadržati ':' ili '/'.
+ * Nijedan deo ne sme biti prazan niti sadržati ':' ili '/', a verzija mora biti
+ * u formatu koji prihvata [isValidVersion].
  *
  * @throws ValidationException ako neki deo nije ispravan
  */
@@ -16,6 +17,10 @@ data class ComponentId (
         checkPart("organization", organization)
         checkPart("project", project)
         checkPart("version", version)
+
+        if (!isValidVersion(version)) {
+            throw ValidationException("Invalid version: '$version'")
+        }
     }
 
     private fun checkPart(name: String, value: String) {

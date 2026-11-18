@@ -1,0 +1,12 @@
+{
+  "organization": "rs.raf",
+  "project": "app",
+  "version": "1.0.0",
+  "file": "app-1.0.0.jar",
+  "dependencies": [
+    { "organization": "rs.raf", "project": "utils", "version": "1.0.0", "scope": "compile" },
+    { "organization": "rs.raf", "project": "network", "version": "3.0.0", "scope": "compile" },
+    { "organization": "org.junit", "project": "junit", "version": "5.0.0", "scope": "test" },
+    { "organization": "rs.raf", "project": "log", "version": "1.0.0", "scope": "compile", "optional": true }
+  ]
+}

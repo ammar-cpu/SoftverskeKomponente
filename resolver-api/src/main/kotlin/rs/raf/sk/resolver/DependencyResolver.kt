@@ -114,12 +114,47 @@ abstract class DependencyResolver {
     /**
      * Pronalazi sve komponente koje treba preuzeti: zadate komponente i njihove tranzitivne zavisnosti.
      *
+     * Konflikte rešava [strategy]. Posle izbora pobednika stablo se obilazi još jednom, samo kroz
+     * pobedničke verzije, da se ne bi preuzele zavisnosti koje je tražila samo verzija koja je izgubila.
+     *
      * @param roots komponente sa spiska za preuzimanje
-     * @return komponente koje treba preuzeti, svaka u tačno jednoj verziji
+     * @return komponente koje treba preuzeti, svaka u tačno jednoj verziji, redom nailaska
      * @throws rs.raf.sk.model.ComponentNotFoundException ako neka komponenta ne postoji u repozitorijumu
+     * @throws ValidationException ako config.json ili neki metadata.json nije ispravan
      * @throws RepositoryException ako repozitorijum ne može da se pročita
+     * @throws UninitializedPropertyAccessException ako [strategy] nije postavljena
      */
-    fun resolve(roots: List<ComponentId>): List<ComponentId> = TODO()
+    fun resolve(roots: List<ComponentId>): List<ComponentId> {
+        val config = readConfig()
+        val winners = collectCandidates(roots).mapValues { (_, candidates) -> strategy.choose(candidates).id }
+
+        val result = mutableListOf<ComponentId>()
+        val visited = mutableSetOf<ComponentId>()
+        val queue = ArrayDeque<ComponentId>()
+
+        for (id in roots) {
+            val winner = winners.getValue(projectKey(id))
+            if (visited.add(winner)) {
+                queue.addLast(winner)
+            }
+        }
+
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            result.add(current)
+
+            for (dependency in readMetadata(current).dependencies) {
+                if (dependency.optional || !config.isTransitive(dependency.scope)) {
+                    continue
+                }
+                val winner = winners.getValue(projectKey(dependency.id))
+                if (visited.add(winner)) {
+                    queue.addLast(winner)
+                }
+            }
+        }
+        return result
+    }
 
     /**
      * Preuzima fajlove zadatih komponenti i njihovih zavisnosti u odredišni folder.

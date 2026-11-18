@@ -4,8 +4,10 @@ import rs.raf.sk.model.ComponentId
 import rs.raf.sk.model.RepoConfig
 import rs.raf.sk.model.RepoPaths
 import rs.raf.sk.model.RepositoryException
+import rs.raf.sk.model.ValidationException
 import rs.raf.sk.model.parseConfig
 import java.io.File
+import java.io.IOException
 import java.util.ServiceLoader
 
 /**
@@ -100,5 +102,39 @@ abstract class DependencyResolver {
         @JvmStatic
         fun availableTypes(): List<String> =
             ServiceLoader.load(DependencyResolver::class.java).map { it.type }
+
+        /**
+         * Čita spisak komponenti za preuzimanje sa lokalnog diska.
+         * U svakoj liniji je jedna oznaka "organizacija:projekat:verzija". Razmaci na početku i
+         * kraju linije se ignorišu, a prazne linije i linije koje počinju sa "#" se preskaču.
+         *
+         * @param file fajl sa spiskom
+         * @return komponente sa spiska, redom kojim su navedene
+         * @throws ValidationException ako neka linija nije ispravna oznaka; poruka sadrži broj linije
+         * @throws RepositoryException ako fajl ne postoji ili ne može da se pročita
+         */
+        @JvmStatic
+        fun readDependencyFile(file: File): List<ComponentId> {
+            val lines = try {
+                file.readLines()
+            } catch (e: IOException) {
+                throw RepositoryException("Cannot read dependency file: ${file.path}", e)
+            }
+
+            val ids = mutableListOf<ComponentId>()
+            for ((index, rawLine) in lines.withIndex()) {
+                val line = rawLine.trim()
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue
+                }
+
+                try {
+                    ids.add(ComponentId.parse(line))
+                } catch (e: ValidationException) {
+                    throw ValidationException("${file.path}, line ${index + 1}: ${e.message}", e)
+                }
+            }
+            return ids
+        }
     }
 }

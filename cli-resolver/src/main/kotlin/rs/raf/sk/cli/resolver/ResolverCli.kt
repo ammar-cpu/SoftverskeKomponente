@@ -2,6 +2,7 @@ package rs.raf.sk.cli.resolver
 
 import rs.raf.sk.model.RepositoryException
 import rs.raf.sk.resolver.DependencyResolver
+import java.io.File
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
@@ -26,6 +27,13 @@ private fun run(args: Array<String>) {
         for ((scope, transitive) in config.scopes) {
             println("  $scope: ${if (transitive) "transitive" else "not transitive"}")
         }
+    } else if (args.size == 4 && args[2] == "list") {
+        val resolver = DependencyResolver.load(args[0])
+        resolver.connect(args[1])
+
+        for (id in DependencyResolver.readDependencyFile(File(args[3]))) {
+            println(id)
+        }
     } else {
         printUsage()
     }
@@ -35,4 +43,5 @@ private fun printUsage() {
     println("Usage:")
     println("  cli-resolver types                       list available repository types")
     println("  cli-resolver <type> <location> config    print the repository config")
+    println("  cli-resolver <type> <location> list <file>   print the components from a dependency file")
 }

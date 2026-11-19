@@ -6,17 +6,10 @@ import rs.raf.sk.publisher.PublisherStorage
 import java.io.File
 
 /**
- * Drajver za repozitorijum na lokalnom disku.
- * Lokacija je putanja do korenskog foldera, npr. "./moj-repo".
+ * Skladište za repozitorijum koji je folder na lokalnom disku.
+ * Putanje se tumače relativno u odnosu na [root]; prazan string je sam koren.
  */
-
-class LocalPublisherStorage : PublisherStorage {
-
-    private var root: File? = null
-
-    override fun connect(location: String) {
-        root = File(location)
-    }
+internal class LocalPublisherStorage(private val root: File) : PublisherStorage {
 
     override fun exists(path: String): Boolean = resolve(path).exists()
 
@@ -40,10 +33,7 @@ class LocalPublisherStorage : PublisherStorage {
         resolve(path).mkdirs()
     }
 
-    /** Od relativne putanje napravi pravi fajl unutar korena. */
-    private fun resolve(path: String): File {
-        val r = root ?: throw RepositoryException("Skladište nije povezano, prvo pozovi connect")
-        return if (path.isEmpty()) r else File(r, path)
+    private fun resolve(path: String): File =
+        if (path.isEmpty()) root else File(root, path)
 
-    }
 }

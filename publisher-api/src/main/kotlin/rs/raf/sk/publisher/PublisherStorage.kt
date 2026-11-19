@@ -7,9 +7,6 @@ package rs.raf.sk.publisher
  */
 interface PublisherStorage {
 
-    /** Povezuje skladiste sa repozitorijumom na datoj lokaciji (folder, host:port, ime na Drive-u). */
-    fun connect(location: String)
-
     /** Da li fajl ili folder na putanji postoji. */
     fun exists(path: String): Boolean
 

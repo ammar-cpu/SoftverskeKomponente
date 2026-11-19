@@ -14,17 +14,41 @@ import rs.raf.sk.model.isValidVersion
 import rs.raf.sk.model.metadataToJson
 import rs.raf.sk.model.parseConfig
 import rs.raf.sk.model.parseMetadata
+import java.util.ServiceLoader
 
 
 /**
  * Biblioteka za pravljenje repozitorijuma i postavljanje komponenti.
- * Ne zna gde je repozitorijum, sve radi preko datog skladista (drajvera).
+ * Osnova za sve drajvere (local, network, gdrive).
  *
- * @param storage drajver preko kog se pristupa repozitorijumu
+ * Drajver se ne pravi direktno, nego preko [load], koji ga pronalazi kroz ServiceLoader.
+ * Lokacija repozitorijuma se zadaje kasnije, pozivom [connect].
  */
-class Publisher(private val storage: PublisherStorage) {
+abstract class Publisher {
+
+    /** Ime drajvera, npr. "local", "network" ili "gdrive". */
+    abstract val type: String
+
+    /** Skladište repozitorijuma na koji je drajver povezan. Postavlja ga [connect]. */
+    protected lateinit var storage: PublisherStorage
+        private set
+
+    /**
+     * Pravi skladište za repozitorijum na datoj lokaciji.
+     * Ovo je jedini deo koji se razlikuje od drajvera do drajvera.
+     */
+    protected abstract fun createStorage(location: String): PublisherStorage
 
     // REPOZITORIJUM I KONFIGURACIJA
+
+    /**
+     * Povezuje drajver sa repozitorijumom na datoj lokaciji.
+     *
+     * @param location lokacija repozitorijuma (putanja, host:port, ime foldera na Drive-u)
+     */
+    fun connect(location: String) {
+        storage = createStorage(location)
+    }
 
     /**
      * Pravi novi repozitorijum na datoj lokaciji sa datom konfiguracijom.
@@ -32,38 +56,34 @@ class Publisher(private val storage: PublisherStorage) {
      * @throws ValidationException ako konfiguracija nije ispravna ili repozitorijum već postoji
      *
      */
-    fun init(location: String, config: RepoConfig) {
+    fun init(config: RepoConfig) {
         validateConfig(config)
-        storage.connect(location)
         if (storage.exists(RepoPaths.CONFIG)) {
-            throw ValidationException("Na lokaciji '$location' vec postoji repozitorijum")
+            throw ValidationException("Na ovoj lokaciji vec postoji repozitorijum")
         }
         storage.createDir("")
         writeConfig(config)
     }
 
+
     /**
-     * Otvara postojeci repozitorijum.
+     * Vraća trenutnu konfiguraciju repozitorijuma.
      *
      * @throws RepositoryException ako na lokaciji nema repozitorijuma
      */
-    fun open(location: String) {
-        storage.connect(location)
-        if(!storage.exists(RepoPaths.CONFIG)) {
-            throw RepositoryException("Na lokaciji '$location' nema repozitorijuma")
-        }
+    fun getConfig() : RepoConfig {
+        requireRepository()
+        return parseConfig(storage.read(RepoPaths.CONFIG).decodeToString())
     }
-
-    /** Vraca trenutnu konfiguraciju repozitorijuma. */
-    fun getConfig() : RepoConfig =
-        parseConfig(storage.read(RepoPaths.CONFIG).decodeToString())
 
     /**
      * Menja konfiguraciju. Nova pravila vaze za komponente postavljene posle izmena.
      *
      * @throws ValidationException ako konfiguracija nije ispravna
+     * @throws RepositoryException ako na lokaciji nema repozitorijuma
      */
     fun setConfig(config: RepoConfig) {
+        requireRepository()
         validateConfig(config)
         writeConfig(config)
     }
@@ -195,5 +215,30 @@ class Publisher(private val storage: PublisherStorage) {
 
     private fun writeConfig(config: RepoConfig) {
         storage.write(RepoPaths.CONFIG, configToJson(config).encodeToByteArray())
+    }
+
+    private fun requireRepository() {
+        if (!storage.exists(RepoPaths.CONFIG)) {
+            throw RepositoryException("Na ovoj lokaciji nema repozitorijuma, prvo pozovi init")
+        }
+    }
+
+    companion object {
+        /**
+         * Pronalazi drajver sa datim imenom među drajverima na classpath-u.
+         *
+         * @param type ime drajvera, npr. "local", "network" ili "gdrive"
+         * @return nov, još nepovezan drajver
+         * @throws RepositoryException ako nijedan drajver nema to ime
+         */
+        @JvmStatic
+        fun load(type: String): Publisher =
+            ServiceLoader.load(Publisher::class.java).firstOrNull { it.type == type }
+                ?: throw RepositoryException("Nije pronađen drajver tipa: $type")
+
+        /** Imena svih drajvera na classpath-u, npr. ["local", "network"]. */
+        @JvmStatic
+        fun availableTypes(): List<String> =
+            ServiceLoader.load(Publisher::class.java).map { it.type }
     }
 }

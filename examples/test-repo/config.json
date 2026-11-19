@@ -1,0 +1,9 @@
+{
+  "allowedExtensions": ["jar", "zip"],
+  "scopes": {
+    "compile": true,
+    "runtime": true,
+    "test": false,
+    "provided": false
+  }
+}

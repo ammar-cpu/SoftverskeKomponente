@@ -1,0 +1,9 @@
+{
+  "organization": "rs.raf",
+  "project": "network",
+  "version": "3.0.0",
+  "file": "network-3.0.0.jar",
+  "dependencies": [
+    { "organization": "rs.raf", "project": "utils", "version": "2.0.0", "scope": "compile" }
+  ]
+}

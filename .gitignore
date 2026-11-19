@@ -14,3 +14,7 @@ tokens/
 # repozitorijumi i preuzimanja napravljeni pri testiranju
 moj-repo/
 preuzeto/
+out-nearest/
+out-newest/
+
+CLAUDE.md

@@ -51,6 +51,20 @@ cli-publisher local ./moj-repo deploy metadata.json app-1.0.0.jar
 cli-resolver local ./moj-repo spisak.txt ./preuzeto --strategy=nearest
 ```
 
+### Preuzimanje u folder koji nije prazan
+
+`cli-resolver` ne briše ništa iz izlaznog foldera. Fajlovi koji su već tu ostaju, a fajlovi istog imena
+se prepisuju. Ako se dva puta preuzima u isti folder sa različitim rezultatom (npr. prvo sa `nearest`,
+pa sa `newest`), u folderu ostanu obe verzije iste komponente. Zato program ispiše upozorenje kada
+izlazni folder nije prazan, pa nastavi sa preuzimanjem.
+
+Za poređenje strategija koristiti posebne foldere:
+
+```
+cli-resolver local examples/test-repo examples/spisak.txt out-nearest
+cli-resolver local examples/test-repo examples/spisak.txt out-newest --strategy=newest
+```
+
 ## Google Drive
 
 `credentials.json` i sačuvani tokeni se nikad ne commit-uju (već su u `.gitignore`).

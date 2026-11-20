@@ -5,8 +5,8 @@ plugins {
 dependencies {
     implementation(project(":publisher-api"))
 
-    // TODO: Google Drive API i OAuth biblioteke, npr.
-    // implementation("com.google.api-client:google-api-client:...")
-    // implementation("com.google.oauth-client:google-oauth-client-jetty:...")
-    // implementation("com.google.apis:google-api-services-drive:...")
+    // Google Drive API i OAuth prijava
+    implementation("com.google.api-client:google-api-client:2.9.2")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.39.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20261011-2.0.0")
 }

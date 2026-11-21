@@ -1,7 +1,7 @@
 package rs.raf.sk.resolver
 
 /**
- * Čitanje iz repozitorijuma, bez obzira na to gde se on nalazi (disk, mreža, Google Drive).
+ * Čitanje iz repozitorijuma, bez obzira na to gde se on nalazi (disk ili Google Drive).
  *
  * Sve putanje su relativne u odnosu na koren repozitorijuma, sa "/" kao separatorom.
  * Prazan string je koren. Upisa nema, jer preuzimanje nikad ne menja repozitorijum.

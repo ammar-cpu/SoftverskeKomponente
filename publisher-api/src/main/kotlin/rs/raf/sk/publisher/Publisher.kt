@@ -19,14 +19,14 @@ import java.util.ServiceLoader
 
 /**
  * Biblioteka za pravljenje repozitorijuma i postavljanje komponenti.
- * Osnova za sve drajvere (local, network, gdrive).
+ * Osnova za sve drajvere (local, gdrive).
  *
  * Drajver se ne pravi direktno, nego preko [load], koji ga pronalazi kroz ServiceLoader.
  * Lokacija repozitorijuma se zadaje kasnije, pozivom [connect].
  */
 abstract class Publisher {
 
-    /** Ime drajvera, npr. "local", "network" ili "gdrive". */
+    /** Ime drajvera, npr. "local" ili "gdrive". */
     abstract val type: String
 
     /** Skladište repozitorijuma na koji je drajver povezan. Postavlja ga [connect]. */
@@ -44,7 +44,7 @@ abstract class Publisher {
     /**
      * Povezuje drajver sa repozitorijumom na datoj lokaciji.
      *
-     * @param location lokacija repozitorijuma (putanja, host:port, ime foldera na Drive-u)
+     * @param location lokacija repozitorijuma (putanja ili ime foldera na Drive-u)
      */
     fun connect(location: String) {
         storage = createStorage(location)
@@ -227,7 +227,7 @@ abstract class Publisher {
         /**
          * Pronalazi drajver sa datim imenom među drajverima na classpath-u.
          *
-         * @param type ime drajvera, npr. "local", "network" ili "gdrive"
+         * @param type ime drajvera, npr. "local" ili "gdrive"
          * @return nov, još nepovezan drajver
          * @throws RepositoryException ako nijedan drajver nema to ime
          */
@@ -236,7 +236,7 @@ abstract class Publisher {
             ServiceLoader.load(Publisher::class.java).firstOrNull { it.type == type }
                 ?: throw RepositoryException("Nije pronađen drajver tipa: $type")
 
-        /** Imena svih drajvera na classpath-u, npr. ["local", "network"]. */
+        /** Imena svih drajvera na classpath-u, npr. ["local", "gdrive"]. */
         @JvmStatic
         fun availableTypes(): List<String> =
             ServiceLoader.load(Publisher::class.java).map { it.type }

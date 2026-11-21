@@ -9,7 +9,6 @@ dependencies {
     // Implementacije su potrebne tek pri pokretanju i učitavaju se preko ServiceLoader-a.
     // CLI kod nigde ne pominje ove klase, isto kao što JDBC kod ne pominje MySQL drajver.
     runtimeOnly(project(":local-publisher"))
-    runtimeOnly(project(":network-publisher"))
     runtimeOnly(project(":gdrive-publisher"))
 }
 

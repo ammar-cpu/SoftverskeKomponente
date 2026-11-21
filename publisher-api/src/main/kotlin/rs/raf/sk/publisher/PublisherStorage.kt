@@ -2,7 +2,7 @@ package rs.raf.sk.publisher
 
 /**
  * Skladiste u kom se nalazi repozitorijum. Implementira ga svaki drajver
- * (lokalni, mrezni, Google Drive). Sve putanje su relativne u odnosu na koren
+ * (lokalni, Google Drive). Sve putanje su relativne u odnosu na koren
  * repozitorijuma, sa "/" kao separatorom; prazan string je sam koren.
  */
 interface PublisherStorage {

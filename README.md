@@ -4,7 +4,7 @@ Projekat iz Softverskih komponenti, RAF 2026/27.
 
 Repozitorijum komponenti po uzoru na Maven i dve biblioteke za rad sa njim: jedna pravi
 repozitorijum i postavlja komponente, druga ih preuzima zajedno sa tranzitivnim zavisnostima.
-Repozitorijum može biti na lokalnom disku, na drugom računaru u mreži ili na Google Drive-u.
+Repozitorijum može biti na lokalnom disku ili na Google Drive-u.
 Konkretna implementacija se učitava preko SPI mehanizma, kao JDBC drajver.
 
 Formati fajlova i ostali dogovori su u [DESIGN.md](DESIGN.md).
@@ -15,12 +15,11 @@ Formati fajlova i ostali dogovori su u [DESIGN.md](DESIGN.md).
 |---|---|
 | `model` | zajednički podaci: oznaka komponente, config.json, metadata.json, raspored foldera |
 | `publisher-api` | biblioteka 1: kreiranje repozitorijuma, postavljanje, pretraga |
-| `local-publisher`, `network-publisher`, `gdrive-publisher` | implementacije biblioteke 1 |
+| `local-publisher`, `gdrive-publisher` | implementacije biblioteke 1 |
 | `cli-publisher` | program za komandnu liniju za biblioteku 1 |
 | `resolver-api` | biblioteka 2: preuzimanje, tranzitivne zavisnosti, konflikti verzija |
-| `local-resolver`, `network-resolver`, `gdrive-resolver` | implementacije biblioteke 2 |
+| `local-resolver`, `gdrive-resolver` | implementacije biblioteke 2 |
 | `cli-resolver` | program za komandnu liniju za biblioteku 2 |
-| `network-server` | server koji se pokreće na drugom računaru |
 
 CLI programi se kompajliraju samo protiv API-ja. Implementacije su `runtimeOnly` zavisnosti
 i nalaze se preko `ServiceLoader`-a.

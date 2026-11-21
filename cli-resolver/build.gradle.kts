@@ -6,7 +6,6 @@ dependencies {
     implementation(project(":resolver-api"))
 
     runtimeOnly(project(":local-resolver"))
-    runtimeOnly(project(":network-resolver"))
     runtimeOnly(project(":gdrive-resolver"))
 }
 

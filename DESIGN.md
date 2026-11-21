@@ -88,7 +88,6 @@ Sve komponente sa spiska imaju dubinu 1 u stablu zavisnosti.
 | tip       | lokacija                     | primer          |
 |-----------|------------------------------|-----------------|
 | `local`   | putanja do korenskog foldera | `./moj-repo`    |
-| `network` | `host:port` servera          | `192.168.1.5:8080` |
 | `gdrive`  | ime korenskog foldera na Drive-u | `sk-repo`   |
 
 ## Skladište
@@ -101,20 +100,6 @@ Svaka biblioteka ima svoj interfejs skladišta:
 Pravila za oba:
 - putanje su relativne u odnosu na koren, sa `/` kao separatorom; prazan string je koren
 - `list` vraća samo imena, sortirana, i praznu listu ako folder ne postoji
-
-## Mrežni server **(predlog)**
-
-`network-server <port> <folder>` čuva repozitorijum u svom folderu i odgovara na HTTP zahteve:
-
-| zahtev | odgovor |
-|---|---|
-| `GET /exists?path=...` | `true` ili `false` |
-| `GET /read?path=...` | sadržaj fajla, 404 ako ne postoji |
-| `GET /list?path=...` | imena, jedno po liniji |
-| `POST /write?path=...` (telo je sadržaj) | 200 |
-| `POST /mkdir?path=...` | 200 |
-
-Server mora da odbije putanju sa `..`, da niko ne bi čitao fajlove van foldera repozitorijuma.
 
 ## Greške **(predlog)**
 
@@ -134,5 +119,4 @@ CLI ih hvata i ispisuje poruku.
 
 ## Pitanja za asistenta
 
-- Da li mrežni repozitorijum može da se demonstrira sa serverom na `localhost` ili mora na drugom računaru?
 - Da li je u redu da je zajednički kod (formati fajlova, raspored foldera) u posebnom modulu `model` koji koriste obe biblioteke?

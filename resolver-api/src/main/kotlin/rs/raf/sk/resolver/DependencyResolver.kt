@@ -15,7 +15,7 @@ import java.nio.file.Files
 import java.util.ServiceLoader
 
 /**
- * Osnova za sve drajvere za preuzimanje (local, network, gdrive).
+ * Osnova za sve drajvere za preuzimanje (local, gdrive).
  *
  * Drajver se ne pravi direktno, nego preko [load], koji ga pronalazi kroz [ServiceLoader].
  * Zato svaki drajver mora biti `class` sa praznim konstruktorom, a lokacija repozitorijuma
@@ -23,7 +23,7 @@ import java.util.ServiceLoader
  */
 abstract class DependencyResolver {
 
-    /** Ime drajvera, npr. "local", "network" ili "gdrive". */
+    /** Ime drajvera, npr. "local" ili "gdrive". */
     abstract val type: String
 
     /** Pravilo za izbor verzije kada se ista komponenta pojavi u više verzija. Mora se postaviti pre [resolve]. */
@@ -37,7 +37,7 @@ abstract class DependencyResolver {
      * Pravi skladište za repozitorijum na datoj lokaciji.
      * Ovo je jedini deo koji se razlikuje od drajvera do drajvera.
      *
-     * @param location lokacija repozitorijuma, u obliku koji zavisi od tipa (putanja, host:port, ime foldera)
+     * @param location lokacija repozitorijuma, u obliku koji zavisi od tipa (putanja ili ime foldera na Drive-u)
      * @return skladište preko kog se čita repozitorijum
      * @throws RepositoryException ako lokacija nije ispravna ili nije dostupna
      */
@@ -46,7 +46,7 @@ abstract class DependencyResolver {
     /**
      * Povezuje drajver sa repozitorijumom na datoj lokaciji.
      *
-     * @param location lokacija repozitorijuma, u obliku koji zavisi od tipa (putanja, host:port, ime foldera)
+     * @param location lokacija repozitorijuma, u obliku koji zavisi od tipa (putanja ili ime foldera na Drive-u)
      * @throws RepositoryException ako lokacija nije ispravna ili nije dostupna
      */
     fun connect(location: String) {
@@ -208,7 +208,7 @@ abstract class DependencyResolver {
         /**
          * Pronalazi drajver sa datim imenom među drajverima na classpath-u.
          *
-         * @param type ime drajvera, npr. "local", "network" ili "gdrive"
+         * @param type ime drajvera, npr. "local" ili "gdrive"
          * @return nov, još nepovezan drajver
          * @throws RepositoryException ako nijedan drajver na classpath-u nema to ime
          */
@@ -223,7 +223,7 @@ abstract class DependencyResolver {
         /**
          * Vraća imena svih drajvera koji su na classpath-u.
          *
-         * @return imena drajvera, npr. ["local", "network"]; prazna lista ako nijedan nije pronađen
+         * @return imena drajvera, npr. ["local", "gdrive"]; prazna lista ako nijedan nije pronađen
          */
         @JvmStatic
         fun availableTypes(): List<String> =
